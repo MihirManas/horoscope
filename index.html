@@ -6,17 +6,19 @@
     <title>Interactive Astrological Blueprint: Mihir Manas Mishra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Cosmic Harmony -->
-    <!-- Application Structure Plan: A tabbed, single-page dashboard architecture was chosen to deconstruct the dense report into manageable, thematic sections. The user flow is non-linear, starting with a high-level "Overview" and allowing deep dives into "Planets," "Life Areas," "Timeline," and "Charts" based on interest. This structure prioritizes user-driven exploration over passive reading. Key interactions include clicking on planets and life area cards to dynamically display detailed information, and a radar chart for a quick visual summary of planetary strengths. This approach makes the complex astrological data more accessible and engaging. -->
+    <!-- Application Structure Plan: A tabbed, single-page dashboard architecture was chosen to deconstruct the dense report into manageable, thematic sections. The user flow is non-linear, starting with a high-level "Overview" and allowing deep dives into "Planets," "Life Areas," "Timeline," "Charts," and a new "3D Orrery" for interactive visualization. This structure prioritizes user-driven exploration over passive reading. Key interactions include clicking on planets and life area cards to dynamically display detailed information, a radar chart for a quick visual summary of planetary strengths, and a drag-to-rotate 3D sphere. This approach makes the complex astrological data more accessible and engaging. -->
     <!-- Visualization & Content Choices: 
         - Report Info: Core birth details & astrological signs -> Goal: Inform -> Viz: Styled cards -> Interaction: Static Display -> Justification: Quick, at-a-glance information for immediate context. Method: HTML/Tailwind.
         - Report Info: Planetary positions and dignities -> Goal: Explore/Compare -> Viz: Radar Chart & Interactive Grid -> Interaction: Click on planet icon to reveal detailed text -> Justification: The radar chart provides a novel quantitative summary, while the interactive grid allows focused study of each planet's influence without clutter. Library: Chart.js for radar, JS/HTML for grid.
         - Report Info: House-by-house analysis (Bhavas) -> Goal: Organize/Explore -> Viz: Grid of 12 cards -> Interaction: Click card to show detailed analysis -> Justification: Breaks down the largest portion of the report's text into logical, user-selectable segments, preventing information overload. Method: JS/HTML/Tailwind.
         - Report Info: Dasha periods -> Goal: Understand Change/Time -> Viz: Horizontal timeline -> Interaction: Static display with clear labeling -> Justification: Visually represents the long-term planetary influences and their durations effectively. Method: HTML/Tailwind.
         - Report Info: North/South Indian Chart Diagrams -> Goal: Visualize -> Viz: Styled HTML Tables -> Interaction: Static display -> Justification: Replicates the traditional and essential astrological chart layouts with precision and clarity using web-standard elements. Method: HTML/Tailwind.
+        - Report Info: Cosmic energies / Abstract representation -> Goal: Engage/Visualize -> Viz: 3D Interactive Sphere -> Interaction: Mouse/Touch drag to rotate -> Justification: Adds a dynamic and visually appealing element to symbolize the celestial influences, enhancing user engagement and offering a unique interactive experience. Library: three.js.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -113,6 +115,7 @@
             <a href="#life-areas" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="life-areas">Life Areas (Bhavas)</a>
             <a href="#timeline" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="timeline">Timeline (Dashas)</a>
             <a href="#charts" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="charts">Charts</a>
+            <a href="#three-d" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="three-d">3D Orrery</a>
         </nav>
 
         <main>
@@ -412,37 +415,174 @@
                 </div>
             </div>
 
+            <!-- 3D Orrery Section -->
+            <div id="three-d-content" class="tab-content hidden-content">
+                <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">Explore a stylized celestial body in 3D. This interactive model represents the dynamic interplay of cosmic energies that influence your astrological blueprint. Drag your mouse or finger on the sphere to rotate it and observe its various facets.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                    <h3 class="font-bold text-xl text-indigo-900 mb-4">Celestial Body Interaction</h3>
+                    <div class="chart-container flex items-center justify-center">
+                        <canvas id="threeJsCanvas" class="rounded-lg border border-slate-200"></canvas>
+                    </div>
+                    <p class="text-slate-600 mt-4 text-center">Drag to rotate. It symbolizes the constant motion and intricate relationships within your astrological chart.</p>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <script>
+        // THREE.js global variables
+        let scene, camera, renderer, sphere;
+        let animationFrameId;
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        const rotationSpeed = 0.005;
+
+        // Initialize THREE.js scene, camera, renderer, and objects
+        function initThreeJS() {
+            const canvas = document.getElementById('threeJsCanvas');
+            const container = canvas.parentElement;
+
+            if (!container) {
+                console.error("3D canvas container not found.");
+                return;
+            }
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xfdf6e3); // Match body background
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 2;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Sphere (Celestial Body)
+            const geometry = new THREE.SphereGeometry(1, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0x3b82f6 }); // Blue color
+            sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+
+            // Lighting (optional for MeshBasicMaterial, but good practice)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Mouse/Touch controls
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMouseX = e.clientX;
+                previousMouseY = e.clientY;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging || !sphere) return;
+
+                const deltaX = (e.clientX - previousMouseX) * rotationSpeed;
+                const deltaY = (e.clientY - previousMouseY) * rotationSpeed;
+
+                sphere.rotation.y += deltaX;
+                sphere.rotation.x += deltaY;
+
+                previousMouseX = e.clientX;
+                previousMouseY = e.clientY;
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                previousMouseX = e.touches[0].clientX;
+                previousMouseY = e.touches[0].clientY;
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDragging || !sphere) return;
+                e.preventDefault(); // Prevent scrolling
+
+                const deltaX = (e.touches[0].clientX - previousMouseX) * rotationSpeed;
+                const deltaY = (e.touches[0].clientY - previousMouseY) * rotationSpeed;
+
+                sphere.rotation.y += deltaX;
+                sphere.rotation.x += deltaY;
+
+                previousMouseX = e.touches[0].clientX;
+                previousMouseY = e.touches[0].clientY;
+            }, { passive: false });
+
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (renderer && camera && container) {
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            });
+        }
+
+        // Animation loop for THREE.js
+        function animateThreeJS() {
+            // Only render if the 3D content tab is active
+            if (document.getElementById('three-d-content').classList.contains('hidden-content')) {
+                stopAnimation(); // Stop animation if tab is hidden
+                return;
+            }
+            animationFrameId = requestAnimationFrame(animateThreeJS);
+            renderer.render(scene, camera);
+        }
+
+        // Start/Stop animation functions
+        function startAnimation() {
+            if (!animationFrameId) { // Prevent multiple animation loops
+                animateThreeJS();
+            }
+        }
+
+        function stopAnimation() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Data
             const planetData = {
-                sun: { title: '☀️ Sun in Scorpio (10th House)', text: 'Represents father, soul, and power. Its placement in the 10th house indicates a strong drive for career success, leadership, and public recognition. It suggests an intense, strategic, and transformative professional approach, with an ability to manage complex situations and bring hidden truths to light. This can lead to a powerful public image and fame.' },
-                moon: { title: '🌙 Moon in Pisces (2nd House)', text: 'Represents mother, mind, and emotions. In Pisces, it creates a deeply compassionate, intuitive, and sensitive nature. You absorb the emotions of others. This placement in the 2nd house links emotional well-being to financial security and family values. Speech is often soft and nurturing.' },
-                mars: { title: '♂️ Mars in Aries (3rd House, Retrograde)', text: 'Represents energy, courage, and siblings. In its own sign of Aries, it provides immense courage, determination, and a direct communication style. It fuels a love for short travels and learning new skills. The retrograde status suggests that this assertive energy may be internalized or expressed in unconventional ways, requiring conscious management to avoid conflict.' },
-                mercury: { title: '☿️ Mercury in Scorpio (10th House)', text: 'Represents intellect, communication, and skills. In Scorpio in the 10th house, it creates a deeply analytical, investigative, and strategic mind, perfect for research and fields like data science. It grants persistence in intellectual pursuits and an ability to uncover hidden information, driving career success.' },
-                jupiter: { title: '♃ Jupiter in Libra (9th House)', text: 'Represents wisdom, fortune, and higher learning. This is a very strong placement in the 9th house, indicating success in higher education, a strong moral compass, and a love for philosophy and long-distance travel. It bestows wisdom, righteousness, and suggests a fortunate and respectful relationship with a spouse.' },
-                venus: { title: '♀️ Venus in Capricorn (12th House)', text: 'Represents love, beauty, and luxury. In the 12th house, it can indicate a reserved or practical approach to expressing love, despite deep desires for commitment. It may lead to high, sometimes unrealistic, expectations in romance and a fascination with foreign lands or hidden pleasures. It favors prosperity through foreign connections.' },
-                saturn: { title: '♄ Saturn in Cancer (6th House, Retrograde)', text: 'Represents discipline, challenges, and karma. This is a defining placement. In the 6th house, it gives the discipline to overcome enemies and obstacles through hard work. However, in the enemy sign of Cancer and retrograde, it indicates that progress in life and career may be slow, marked by hurdles, emotional stress, and potential digestive issues. It is the great teacher of patience and perseverance.' },
-                rahu: { title: '☊ Rahu in Pisces (2nd House)', text: 'Represents ambition, foreign influences, and illusion. In the 2nd house, it can create an unconventional approach to earning wealth and a fluctuating financial status. It fuels a strong interest in spirituality, mysticism, and transcendental knowledge, but can also cause conflicts over income or family resources.' },
-                ketu: { title: '☋ Ketu in Virgo (8th House)', text: 'Represents spirituality, detachment, and past life influences. In the 8th house, it grants profound intuitive and analytical abilities, especially for research into occult or hidden subjects. It can indicate a spiritual nature but may also bring about sudden, unexpected events and persistent digestive issues. It suggests a karmic connection with in-laws.' },
+                sun: { title: '☀️ Sun in Scorpio (10th House)', text: 'Represents father, soul, and power. Its placement in the 10th house indicates a strong drive for career success, leadership, and public recognition. It suggests an intense, strategic, and transformative professional approach, with an ability to manage complex situations and bring hidden truths to light. This can lead to a powerful public image and fame. It is a primary significator of your father, indicating he is likely an influential and successful figure whose achievements have shaped your aspirations. While this relationship is a source of strength, it might also involve complex dynamics, potentially including emotional distance or control. You have a potential for workaholism, and there is a risk of arrogance or ego issues.' },
+                moon: { title: '🌙 Moon in Pisces (2nd House)', text: 'Represents mother, mind, and emotions. In Pisces, it creates a deeply compassionate, intuitive, and sensitive nature. You absorb the emotions of others, acting as an empath. This placement in the 2nd house links emotional well-being to financial security and family values. Your speech is often soft and nurturing. This can also lead to emotional turmoil and extreme shifts in mood, as you are hypersensitive to the emotions and energies around you. There\'s a duality between your intellectual detachment (Aquarius Ascendant) and this profound emotional sensitivity (Pisces Moon), leading to a complex inner emotional world.' },
+                mars: { title: '♂️ Mars in Aries (3rd House, Retrograde)', text: 'Represents energy, courage, and siblings. In its own sign of Aries, it provides immense courage, determination, and a direct communication style. It fuels a love for short travels and learning new skills, and you approach education with a competitive spirit. The retrograde status suggests that this assertive energy may be internalized or expressed in unconventional ways, requiring conscious management to avoid conflict. This placement also indicates a dynamic but potentially contentious relationship with siblings, with a tendency towards possessiveness in relationships, which can create friction.' },
+                mercury: { title: '☿️ Mercury in Scorpio (10th House)', text: 'Represents intellect, communication, and skills. In Scorpio in the 10th house, it creates a deeply analytical, investigative, and strategic mind, perfect for research and fields like data science. It grants persistence in intellectual pursuits and an ability to uncover hidden information, driving career success. This placement is favorable for writing and journalism, especially exploring mystical or dark themes. You are inherently intelligent and capable of deep understanding without relying solely on formal education. You have the potential for multiple income sources and are a good negotiator and businessperson. However, you might find it difficult to work in groups unless you are in a leadership position, as you crave authority and may impose your views, potentially leading to interpersonal conflicts. This also suggests potential for quick success, appreciation, and sudden fame.' },
+                jupiter: { title: '♃ Jupiter in Libra (9th House)', text: 'Represents wisdom, fortune, and higher learning. This is a very strong placement in the 9th house, indicating success in higher education, a strong moral compass, and a love for philosophy and long-distance travel. It bestows wisdom, righteousness, and suggests a fortunate and respectful relationship with a spouse. You are open-minded and likely to undertake long-distance travel for education or spiritual growth, expanding your knowledge and cultural horizons. You possess a strong spiritual inclination, with potential to become a spiritual leader or mentor. While it suggests a caring and righteous spouse, there is a caution against prioritizing only outer beauty in prospective partners.' },
+                venus: { title: '♀️ Venus in Capricorn (12th House)', text: 'Represents love, beauty, and luxury. In the 12th house, it can indicate a reserved or practical approach to expressing love, despite deep desires for commitment. It may lead to high, sometimes unrealistic, expectations in romance and a fascination with foreign lands or hidden pleasures. It favors prosperity through foreign connections and suggests an appreciation for visiting unfamiliar terrains. This placement also leads to a more private or restrained expression of love and a need to manage unrealistic expectations in relationships to find true fulfillment. There can be high, potentially unrealistic sexual expectations, which could lead to dissatisfaction or a tendency towards flirtatiousness and multiple relationships if reality does not match fantasy. It also highly favors business partnerships and joint ventures, indicating increased chances of success and prosperity, but can lead to higher expenditures than income.' },
+                saturn: { title: '♄ Saturn in Cancer (6th House, Retrograde)', text: 'Represents discipline, challenges, and karma. This is a defining placement. In the 6th house, it gives the discipline to overcome enemies and obstacles through hard work. However, in the enemy sign of Cancer and retrograde, it indicates that progress in life and career may be slow, marked by hurdles, emotional stress, and potential chronic health issues, particularly digestive problems and stomach ailments. It is the great teacher of patience and perseverance. This placement also means you will be determined to conquer your enemies through hard work and have excellent management control over subordinates. However, you might be perceived as selfish or cunning, potentially creating hidden enemies or opposition. This intensified Saturnine influence is critical for foundational work, demanding a highly structured and patient approach, reinforcing themes of discipline and karmic lessons throughout your life.' },
+                rahu: { title: '☊ Rahu in Pisces (2nd House)', text: 'Represents ambition, foreign influences, and illusion. In the 2nd house, it can create an unconventional approach to earning wealth and a fluctuating financial status. It fuels a strong interest in spirituality, mysticism, and transcendental knowledge, but can also cause conflicts over income or family resources. This placement adds an intuitive, visionary, and potentially unconventional approach to your intellectual pursuits, invaluable in innovative AI development. It can also suggest a tendency for career changes if work becomes monotonous, and fluctuations due to delayed payments or income conflicts. If settling abroad, it could bring sleeplessness and mental stress.' },
+                ketu: { title: '☋ Ketu in Virgo (8th House)', text: 'Represents spirituality, detachment, and past life influences. In the 8th house, it grants profound intuitive and analytical abilities, especially for research into occult or hidden subjects. It can indicate a spiritual nature but may also bring about sudden, unexpected events and persistent digestive issues, and minor problems affecting the legs or stomach. It suggests a karmic connection with in-laws; the relationship might be complex, involve hidden aspects, and could lead to emotional detachment or conflicts. This placement also enhances your research capabilities, endowing you with endurance, persistence, and a meticulous desire for accuracy, particularly in solving complex puzzles, suggesting your actual knowledge surpasses formal degrees.' },
             };
 
             const houseData = {
-                 '1': { title: '1st House: Self & Personality', text: 'With Aquarius as the Ascendant, you are idealistic, a progressive thinker, and humanitarian. You value independence and freedom. Your personality is a blend of intellectual detachment and a deep-seated desire to reform and innovate for the collective good. Saturn\'s rule brings discipline and perseverance.' },
-                '2': { title: '2nd House: Wealth, Family & Speech', text: 'With Moon and Rahu in Pisces, your financial well-being is tied to your emotional state. There\'s potential for wealth but also fluctuations. Family values are important, and your speech is often gentle and compassionate. Rahu can bring unconventional income sources.' },
-                '3': { title: '3rd House: Siblings, Courage & Communication', text: 'Retrograde Mars in its own sign Aries makes you extremely courageous and determined. Communication is direct and bold, but can sometimes be blunt. This placement indicates a dynamic but potentially competitive relationship with siblings and a love for short travels.' },
-                '4': { title: '4th House: Mother, Home & Property', text: 'Taurus in the 4th house shows a deep desire for a beautiful, stable, and luxurious home environment. It suggests a strong bond with the mother, but Saturn\'s aspect can indicate challenges or emotional distance in that relationship. Good potential for real estate gains, though possibly with delays.' },
-                '5': { title: '5th House: Children, Intellect & Creativity', text: 'Gemini here points to a sharp, curious, and adaptable intellect. You are fulfilled through creative and academic pursuits. This is a strong placement for education and suggests you will have intelligent children, with a parenting style that emphasizes intellectual development.' },
-                '6': { title: '6th House: Health, Enemies & Daily Routine', text: 'Retrograde Saturn in Cancer here is a crucial placement. It gives the grit to overcome enemies through hard work but also points to potential chronic health issues, especially digestive problems and stress-related ailments. It indicates a life path where discipline and service are key to overcoming obstacles.' },
-                '7': { title: '7th House: Marriage & Business Partner', text: 'Leo here suggests an attraction to confident, high-status, or glamorous partners. There\'s a desire for the partnership to "shine" publicly. While romantic, it can lead to ego clashes, requiring a balance of admiration and equality. Strong potential for successful business partnerships.' },
-                '8': { title: '8th House: Longevity, In-laws & Hidden Matters', text: 'Ketu in Virgo gives a powerful, analytical mind for research and uncovering secrets. It indicates a spiritual nature and intuition. The relationship with in-laws may be complex and detached. This house also points to sudden transformations and persistent, minor health issues.' },
-                '9': { title: '9th House: Fortune, Spirituality & Long Travels', text: 'Jupiter in Libra is a highly auspicious placement, indicating good fortune, success in higher learning, and a strong spiritual or philosophical inclination. You are open-minded and likely to undertake long-distance travel for education or spiritual growth. It promises a righteous and caring spouse.' },
-                '10': { title: '10th House: Career, Fame & Status', text: 'With Sun and Mercury in Scorpio, your career is your powerhouse. This indicates immense drive, ambition, and a path towards leadership and public recognition. You are suited for strategic, analytical, and investigative professions like Data Science/AI. Strong potential for fame, but also a risk of workaholism.' },
-                '11': { title: '11th House: Gains, Friends & Society', text: 'Sagittarius here suggests a broad social circle with supportive friends. Financial gains are indicated through your professional network. Your humanitarian ideals will draw you to community groups, though you may struggle to express affection openly in friendships.' },
-                '12': { title: '12th House: Expenses, Foreign Lands & Liberation', text: 'Venus in Capricorn points to an interest in foreign travel and potential for earning wealth abroad. However, it can also lead to high expenses. It represents a more private or restrained expression of love and a need to manage unrealistic expectations in relationships to find true fulfillment.' },
+                 '1': { title: '1st House: Self & Personality (Aquarius Ascendant)', text: 'With Aquarius as the Ascendant, you are idealistic, a progressive thinker, and humanitarian. You value independence and freedom. Your personality is a blend of intellectual detachment and a deep-seated desire to reform and innovate for the collective good. Saturn\'s rule brings discipline and perseverance. You are likely sharp, observant, and a futuristic thinker, thriving in autonomous environments. This often manifests as appearing emotionally reserved while internally processing emotions deeply. Your physique may be delicate, small, and elegant, with soft, soothing eyes, and an expressive face.' },
+                '2': { title: '2nd House: Wealth, Family & Speech (Pisces)', text: 'With Moon and Rahu in Pisces, your financial well-being is tied to your emotional state. There\'s potential for wealth but also fluctuations. Family values are important, and your speech is often gentle and compassionate. Rahu can bring unconventional income sources. You possess an innate knack for handling money and often attract wealth easily. Your compassionate nature extends to generosity, including donations. While calculative, there is a tendency towards extravagance and impulsive spending on emotionally attached items, which can lead to financial difficulties or guilt. You may also display borrowed money, leading to periods of significant debt.' },
+                '3': { title: '3rd House: Siblings, Courage & Communication (Aries)', text: 'Retrograde Mars in its own sign Aries makes you extremely courageous and determined. Communication is direct, bold, and quick-witted, but can sometimes be blunt or assertive, even aggressive. This placement indicates a dynamic but potentially competitive relationship with siblings. You have a strong love for short travels and learning new skills, approaching education with a competitive spirit. You are not afraid to speak your mind and can effectively articulate complex ideas, but must be mindful of potential bluntness or possessiveness in communication.' },
+                '4': { title: '4th House: Mother, Home & Property (Taurus)', text: 'Taurus in the 4th house shows a deep desire for a beautiful, stable, and luxurious home environment, akin to a palace. You place significant value on property and have a natural disposition for real estate gains. You likely share a strong bond with your mother, who may be soft-spoken and nurturing. However, Saturn\'s retrograde aspect in Cancer (inimical to Moon, 4th house lord) can indicate potential "troubles with mother," health challenges for her, or emotional distance in the relationship, with property gains possibly experiencing delays.' },
+                '5': { title: '5th House: Children, Intellect & Creativity (Gemini)', text: 'Gemini here points to a sharp, curious, and adaptable intellect. You are fulfilled through creative and academic pursuits. This is a strong placement for education and suggests you will have intelligent children, with a parenting style that emphasizes intellectual development and creative expression. This house also governs past life merits and love, indicating a versatile mind that enjoys learning and expressing itself in various forms.' },
+                '6': { title: '6th House: Health, Enemies & Daily Routine (Cancer)', text: 'Retrograde Saturn in Cancer here is a crucial placement. It gives the grit to overcome enemies through hard work, but also points to potential chronic health issues, especially digestive problems and stomach ailments, as well as mental distress and emotional stress. This indicates a life path where discipline and service are key to overcoming obstacles. You possess a disciplined and firm attitude to conquer opponents. You have excellent management control over subordinates, but might be perceived as selfish or cunning, potentially performing good deeds for attention or selfish purposes, which could create hidden enemies.' },
+                '7': { title: '7th House: Marriage & Business Partner (Leo)', text: 'Leo here suggests an attraction to confident, high-status, or glamorous partners. There\'s a desire for the partnership to "shine" publicly. While romantic, it can lead to ego clashes, requiring a balance of admiration and equality. Strong potential for successful business partnerships. You seek intellectual stimulation and personal freedom in relationships. While loyal, emotional bonding takes time, but leads to steadfast devotion. Venus in the 12th house (related to relationships) can indicate high, unrealistic sexual expectations, emotional restraint, and a struggle to express feelings openly. No direct information on the health of your future marriage partner is explicitly provided in the astrological snippets.' },
+                '8': { title: '8th House: Longevity, In-laws & Hidden Matters (Virgo)', text: 'Ketu in Virgo gives a powerful, analytical mind for research and uncovering secrets. It indicates a spiritual nature and intuition. The relationship with in-laws may be complex, involve hidden aspects, or be characterized by emotional detachment or conflicts. This house also points to sudden transformations and persistent digestive issues, and minor problems affecting the legs or stomach. Themes of shared finances or ancestral karmas with in-laws could also be prominent. This placement enhances your research capabilities, providing endurance and a meticulous desire for accuracy in solving complex puzzles.' },
+                '9': { title: '9th House: Fortune, Spirituality & Long Travels (Libra)', text: 'Jupiter in Libra is a highly auspicious placement, indicating good fortune, success in higher learning, and a strong moral compass, and a love for philosophy and long-distance travel. You are open-minded and likely to undertake long-distance travel for educational or spiritual pilgrimages, expanding your knowledge and cultural horizons. This placement promises a righteous and caring spouse. You possess a strong spiritual inclination, with potential to become a spiritual leader or mentor. While it suggests a caring and righteous spouse, there is a caution against prioritizing only outer beauty in prospective partners.' },
+                '10': { title: '10th House: Career, Fame & Status (Scorpio)', text: 'With Sun and Mercury in Scorpio, your career is your powerhouse. This indicates immense drive, ambition, and a path towards leadership and public recognition. You are exceptionally well-suited for strategic, analytical, and investigative professions like Data Science/AI, with aptitude for research and problem-solving. Strong potential for fame, but also a risk of workaholism, and potential arrogance/ego issues. Your career trajectory may involve slow progress, hurdles, and potential financial crunches due to Saturn\'s influence. Mercury suggests quick success and appreciation. You are likely to achieve considerable influence and a respected position in society.' },
+                '11': { title: '11th House: Gains, Friends & Society (Sagittarius)', text: 'Sagittarius here suggests a broad social circle with supportive friends and well-wishers. Financial gains are indicated through your professional network and social connections. Your humanitarian ideals and deep sense of social responsibility will draw you to community groups and alliances. However, due to Saturn in your 6th house, while you have a strong fondness for friends, you may struggle to express your love and feelings openly, and your high expectations could lead to hurt if unmet. This highlights a potential area for developing deeper, more emotionally connected friendships.' },
+                '12': { title: '12th House: Expenses, Foreign Lands & Liberation (Capricorn)', text: 'Venus in Capricorn points to an interest in foreign travel and potential for earning wealth abroad. However, it can also lead to high expenses or higher expenditures than income. It represents a more private or restrained expression of love and a need to manage unrealistic expectations in relationships to find true fulfillment. This placement suggests a life that may involve significant international exposure and opportunities. Rahu\'s influence (from the 2nd house aspect) could bring sleeplessness and mental stress if you were to settle abroad. You also show an appreciation for visiting unfamiliar terrains.' },
             };
 
             // Tab navigation
@@ -465,6 +605,16 @@
                     const activeContent = document.getElementById(tab + '-content');
                     activeContent.classList.remove('hidden-content');
                     activeContent.classList.add('fade-in');
+
+                    // Manage THREE.js animation based on tab
+                    if (tab === 'three-d') {
+                        if (!scene) { // Initialize THREE.js only once
+                            initThreeJS();
+                        }
+                        startAnimation();
+                    } else {
+                        stopAnimation();
+                    }
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
