@@ -3,411 +3,563 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bharat Craftpreneur: From Passion to Profit</title>
+    <title>Interactive Astrological Blueprint: Mihir Manas Mishra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Harmony -->
+    <!-- Application Structure Plan: A tabbed, single-page dashboard architecture was chosen to deconstruct the dense report into manageable, thematic sections. The user flow is non-linear, starting with a high-level "Overview" and allowing deep dives into "Planets," "Life Areas," "Timeline," and "Charts" based on interest. This structure prioritizes user-driven exploration over passive reading. Key interactions include clicking on planets and life area cards to dynamically display detailed information, and a radar chart for a quick visual summary of planetary strengths. This approach makes the complex astrological data more accessible and engaging. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Core birth details & astrological signs -> Goal: Inform -> Viz: Styled cards -> Interaction: Static Display -> Justification: Quick, at-a-glance information for immediate context. Method: HTML/Tailwind.
+        - Report Info: Planetary positions and dignities -> Goal: Explore/Compare -> Viz: Radar Chart & Interactive Grid -> Interaction: Click on planet icon to reveal detailed text -> Justification: The radar chart provides a novel quantitative summary, while the interactive grid allows focused study of each planet's influence without clutter. Library: Chart.js for radar, JS/HTML for grid.
+        - Report Info: House-by-house analysis (Bhavas) -> Goal: Organize/Explore -> Viz: Grid of 12 cards -> Interaction: Click card to show detailed analysis -> Justification: Breaks down the largest portion of the report's text into logical, user-selectable segments, preventing information overload. Method: JS/HTML/Tailwind.
+        - Report Info: Dasha periods -> Goal: Understand Change/Time -> Viz: Horizontal timeline -> Interaction: Static display with clear labeling -> Justification: Visually represents the long-term planetary influences and their durations effectively. Method: HTML/Tailwind.
+        - Report Info: North/South Indian Chart Diagrams -> Goal: Visualize -> Viz: Styled HTML Tables -> Interaction: Static display -> Justification: Replicates the traditional and essential astrological chart layouts with precision and clarity using web-standard elements. Method: HTML/Tailwind.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #FDFBF8; /* Artisan Lightest */
-            color: #332C2B; /* Dark Earth */
+            background-color: #fdf6e3; /* Warm neutral background */
         }
-        /* Color Palette */
-        .bg-artisan-light { background-color: #F5F1ED; } /* Light Beige */
-        .bg-artisan-accent { background-color: #D97706; } /* Muted Terracotta/Amber */
-        .text-artisan-accent { color: #D97706; }
-        .border-artisan-accent { border-color: #D97706; }
-        .ring-artisan-accent:focus { ring-color: #D97706; }
-
-        /* Tab Navigation */
-        .tab-active {
-            background-color: #D97706;
-            color: #FFFFFF;
-        }
-        .tab-inactive {
-            background-color: #E7E5E4; /* Stone-200 */
-            color: #57534E; /* Stone-600 */
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .tab-inactive:hover {
-            background-color: #D6D3D1; /* Stone-300 */
-        }
-
-        /* Chart Container */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             margin-left: auto;
             margin-right: auto;
             height: 300px;
+            max-height: 400px;
         }
-        @media (min-width: 640px) {
-            .chart-container { height: 350px; }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
         }
-
-        /* Smooth Scrolling */
-        html {
-            scroll-behavior: smooth;
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
         }
-        
-        /* Accordion Styling */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out;
+        .nav-link.active {
+            border-bottom-color: #f59e0b; /* Amber 500 */
+            color: #1e3a8a; /* Indigo 900 */
         }
-        
-        /* Animation on Scroll */
-        .reveal {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        .south-indian-chart, .north-indian-chart {
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .south-indian-chart td, .north-indian-chart td {
+            border: 2px solid #374151; /* Gray 700 */
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.75rem;
+            line-height: 1.1;
+            font-weight: 500;
+        }
+        .north-indian-chart {
+            transform: rotate(45deg);
+            margin: 40px auto;
+        }
+        .north-indian-chart td {
+             border: 2px solid #374151;
+        }
+        .north-indian-chart-container {
+            width: 250px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .north-indian-chart .planet-cell div {
+            transform: rotate(-45deg);
+        }
+        .asc-cell {
+            background-color: #fef3c7; /* Amber 100 */
+        }
+        .planet-cell {
+            color: #1e3a8a;
+        }
+        .planet-abbr {
+            font-weight: 700;
+        }
+        .hidden-content {
+            display: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="antialiased">
+<body class="text-slate-800">
 
-    <!-- Header & Hero Section -->
-    <header class="bg-artisan-light text-center py-20 px-4">
-        <div class="max-w-4xl mx-auto reveal">
-            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 leading-tight">Bharat Craftpreneur</h1>
-            <p class="text-xl md:text-2xl mt-4 text-artisan-accent font-medium">Transforming India's Artisan Heritage into Global Success</p>
-            <div class="mt-8 max-w-2xl mx-auto">
-                 <p class="text-lg md:text-xl font-semibold text-gray-700 p-4 bg-white/60 rounded-lg shadow">"Don't just admire India's crafts, <span class="text-artisan-accent">monetize</span> them! Your definitive guide to launch, brand, and sell your artisanal creations to a waiting world. Stop dreaming, start earning."</p>
-            </div>
-            <a href="#modules" class="mt-10 inline-block bg-artisan-accent text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-amber-700 transition duration-300 shadow-lg">Explore the Course</a>
-        </div>
-    </header>
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-indigo-900">Mihir Manas Mishra</h1>
+            <p class="text-lg md:text-xl text-slate-600 mt-2">An Interactive Astrological Blueprint</p>
+        </header>
 
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex justify-center border-b-2 border-slate-200 mb-8 flex-wrap">
+            <a href="#overview" class="nav-link active text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="overview">Overview</a>
+            <a href="#planets" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="planets">Planets (Grahas)</a>
+            <a href="#life-areas" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="life-areas">Life Areas (Bhavas)</a>
+            <a href="#timeline" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="timeline">Timeline (Dashas)</a>
+            <a href="#charts" class="nav-link text-slate-600 font-semibold py-4 px-6 block hover:text-indigo-900 focus:outline-none" data-tab="charts">Charts</a>
+        </nav>
 
-        <!-- The Opportunity Section -->
-        <section id="opportunity" class="py-16 sm:py-24 reveal">
-            <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">The Untapped Opportunity</h2>
-                <p class="mt-4 text-lg text-gray-600">Millions of talented artisans and passionate entrepreneurs in India possess incredible skills, yet lack a clear roadmap to navigate the business world. The current skilling landscape is crowded with tech courses, leaving a massive, unaddressed need for practical, craft-focused business education.</p>
-            </div>
-            <div class="mt-12">
-                <div class="chart-container">
-                    <canvas id="marketGapChart"></canvas>
-                </div>
-                 <p class="text-center mt-4 text-sm text-gray-500">This chart illustrates the current imbalance in the skilling ecosystem, highlighting the critical need for a program like Bharat Craftpreneur.</p>
-            </div>
-        </section>
+        <main>
+            <!-- Overview Section -->
+            <div id="overview-content" class="tab-content fade-in">
+                 <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">This section provides a high-level summary of Mihir's astrological identity. It includes his foundational birth details, core placements like the Ascendant and Moon Sign, and the primary chart diagrams. This is the starting point for understanding the key themes that shape his life path, such as his visionary nature and the significant influence of Saturn.</p>
 
-        <!-- The Learner's Journey Section -->
-        <section class="py-16 sm:py-24 bg-artisan-light rounded-2xl reveal">
-            <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Your Journey from Passion to Profit</h2>
-                <p class="mt-4 text-lg text-gray-600">We provide a clear, step-by-step path that transforms your creative passion into a thriving global business. This is not just a course; it's a complete transformation roadmap.</p>
-            </div>
-            <div class="mt-16 max-w-6xl mx-auto px-4">
-                <div class="flex flex-col md:flex-row items-center justify-between space-y-8 md:space-y-0 md:space-x-4">
-                    <!-- Step 1 -->
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-16 h-16 bg-artisan-accent text-white rounded-full flex items-center justify-center text-2xl font-bold">1</div>
-                        <p class="mt-3 font-semibold text-lg">Business Foundation</p>
-                        <p class="text-sm text-gray-600">Build a legitimate enterprise.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                    <!-- Birth Details -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Birth Details</h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li><strong>Date:</strong> 09 December 2005</li>
+                            <li><strong>Time:</strong> 11:15:00 AM</li>
+                            <li><strong>Place:</strong> Polasara, Odisha, India</li>
+                            <li><strong>Lat/Long:</strong> 19°42' N, 84°48' E</li>
+                        </ul>
                     </div>
-                    <div class="flex-1 h-1 w-24 md:w-auto bg-gray-300 md:h-1"></div>
-                    <!-- Step 2 -->
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-16 h-16 bg-artisan-accent text-white rounded-full flex items-center justify-center text-2xl font-bold">2</div>
-                        <p class="mt-3 font-semibold text-lg">Digital Showcase</p>
-                        <p class="text-sm text-gray-600">Master online sales & marketing.</p>
+                    <!-- Core Placements -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Core Placements</h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li><strong>Ascendant (Lagna):</strong> Aquarius</li>
+                            <li><strong>Moon Sign (Rashi):</strong> Pisces</li>
+                            <li><strong>Birth Star (Nakshatra):</strong> U.Bhadrapada</li>
+                        </ul>
                     </div>
-                     <div class="flex-1 h-1 w-24 md:w-auto bg-gray-300 md:h-1"></div>
-                     <!-- Step 3 -->
-                    <div class="flex flex-col items-center text-center">
-                        <div class="w-16 h-16 bg-artisan-accent text-white rounded-full flex items-center justify-center text-2xl font-bold">3</div>
-                        <p class="mt-3 font-semibold text-lg">Global Reach</p>
-                        <p class="text-sm text-gray-600">Conquer logistics and exports.</p>
+                    <!-- Key Life Themes -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg md:col-span-2 lg:col-span-1">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Key Life Themes</h3>
+                        <p class="text-slate-700">A journey of a visionary reformer. Path shaped by Saturn's influence: discipline, challenges, and perseverance. A core tension between intellectual brilliance and profound emotional sensitivity.</p>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Modules Section -->
-        <section id="modules" class="py-16 sm:py-24 reveal">
-            <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Interactive Course Modules</h2>
-                <p class="mt-4 text-lg text-gray-600">Click on each module to discover the practical skills and knowledge you will gain. Our curriculum is designed for immediate, real-world application.</p>
-            </div>
-
-            <div class="mt-12 max-w-5xl mx-auto">
-                <div class="flex flex-col sm:flex-row justify-center rounded-t-lg shadow-md overflow-hidden">
-                    <button class="tab-button flex-1 py-3 px-4 font-semibold transition tab-active" onclick="openTab('foundation')">Foundation</button>
-                    <button class="tab-button flex-1 py-3 px-4 font-semibold transition tab-inactive" onclick="openTab('digital')">Digital Showcase</button>
-                    <button class="tab-button flex-1 py-3 px-4 font-semibold transition tab-inactive" onclick="openTab('global')">Global Reach</button>
-                    <button class="tab-button flex-1 py-3 px-4 font-semibold transition tab-inactive" onclick="openTab('tools')">Tools & Tech</button>
                 </div>
 
-                <div class="bg-white rounded-b-lg border border-t-0 border-gray-200 shadow-md">
-                    <!-- Module Content -->
-                    <div id="foundation" class="tab-content p-6 sm:p-8">...</div>
-                    <div id="digital" class="tab-content p-6 sm:p-8" style="display: none;">...</div>
-                    <div id="global" class="tab-content p-6 sm:p-8" style="display: none;">...</div>
-                    <div id="tools" class="tab-content p-6 sm:p-8" style="display: none;">...</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Lagna Chart (South Indian)</h3>
+                        <table class="south-indian-chart">
+                            <tr>
+                                <td class="asc-cell">Aq <span class="planet-abbr">Asc</span></td>
+                                <td class="planet-cell">Pi <span class="planet-abbr">Mon, Rah</span></td>
+                                <td class="planet-cell">Ar <span class="planet-abbr">Mar(R)</span></td>
+                                <td class="planet-cell">Ta</td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Cp <span class="planet-abbr">Ven</span></td>
+                                <td colspan="2" rowspan="2" class="font-bold text-indigo-800">Rasi</td>
+                                <td class="planet-cell">Ge</td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Sg <span class="planet-abbr">Plu</span></td>
+                                <td class="planet-cell">Cn <span class="planet-abbr">Sat(R)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Sc <span class="planet-abbr">Sun, Mer</span></td>
+                                <td class="planet-cell">Li <span class="planet-abbr">Jup</span></td>
+                                <td class="planet-cell">Vi <span class="planet-abbr">Ket</span></td>
+                                <td class="planet-cell">Le</td>
+                            </tr>
+                        </table>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Lagna Chart (North Indian)</h3>
+                        <div class="north-indian-chart-container">
+                            <table class="north-indian-chart">
+                                <tr>
+                                    <td class="planet-cell"><div>Pi<br><span class="planet-abbr">Mon, Rah</span></div></td>
+                                    <td class="planet-cell"><div>Ar<br><span class="planet-abbr">Mar(R)</span></div></td>
+                                    <td class="planet-cell"><div>Ta</div></td>
+                                    <td class="planet-cell"><div>Ge</div></td>
+                                </tr>
+                                <tr>
+                                    <td class="asc-cell"><div>Aq<br><span class="planet-abbr">Asc</span></div></td>
+                                    <td colspan="2" rowspan="2"></td>
+                                    <td class="planet-cell"><div>Cn<br><span class="planet-abbr">Sat(R)</span></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Cp<br><span class="planet-abbr">Ven</span></div></td>
+                                    <td class="planet-cell"><div>Le</div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Sg<br><span class="planet-abbr">Plu</span></div></td>
+                                    <td class="planet-cell"><div>Sc<br><span class="planet-abbr">Sun, Mer</span></div></td>
+                                    <td class="planet-cell"><div>Li<br><span class="planet-abbr">Jup</span></div></td>
+                                    <td class="planet-cell"><div>Vi<br><span class="planet-abbr">Ket</span></div></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Why It Works Section (Enhanced with SVGs) -->
-        <section class="py-16 sm:py-24 reveal">
-             <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Why Bharat Craftpreneur Delivers Results</h2>
-                <p class="mt-4 text-lg text-gray-600">This course is more than just information; it's a catalyst for real-world success. We provide tangible solutions that lead to growth, legitimacy, and financial independence.</p>
-            </div>
-            <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Card 1 -->
-                <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                        <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            <!-- Planets Section -->
+            <div id="planets-content" class="tab-content hidden-content">
+                <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">This section details the influence of each major planet (Graha) in Mihir's chart. Click on a planet icon to see its specific role and impact. The radar chart provides a quick visual summary of planetary strengths and weaknesses, highlighting which energies are most prominent or require conscious management.</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <div id="planet-details" class="bg-white p-6 rounded-xl shadow-lg min-h-[300px]">
+                           <h3 id="planet-detail-title" class="font-bold text-xl text-indigo-900 mb-2">Select a Planet</h3>
+                           <p id="planet-detail-text" class="text-slate-700">Click on a planet from the grid to learn about its specific influence on personality, career, relationships, and other life areas.</p>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="font-bold text-xl text-indigo-900 mb-4 text-center">Planetary Strength</h3>
+                            <div class="chart-container">
+                                <canvas id="planetaryStrengthChart"></canvas>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold mt-5">Fills a Critical Void</h3>
-                    <p class="mt-2 text-gray-600">Provides a unique, comprehensive guide addressing the specific challenges of Indian craft entrepreneurs.</p>
-                </div>
-                <!-- Card 2 -->
-                 <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                        <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mt-5">Empowers Livelihood</h3>
-                    <p class="mt-2 text-gray-600">Offers a clear, actionable roadmap to turn passion into a sustainable and profitable business.</p>
-                </div>
-                <!-- Card 3 -->
-                 <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                       <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mt-5">Provides Legitimacy</h3>
-                    <p class="mt-2 text-gray-600">Guides you through formal registration and certification, opening doors to larger clients and funding.</p>
-                </div>
-                <!-- Card 4 -->
-                <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                        <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.707 4.293l1.414-1.414a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-1.414-1.414A1 1 0 017 8.586V7a1 1 0 01.707-.293z" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mt-5">Unlocks Global Markets</h3>
-                    <p class="mt-2 text-gray-600">Equips you with the practical tools and knowledge to thrive in lucrative international markets.</p>
-                </div>
-                <!-- Card 5 -->
-                 <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                        <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mt-5">Fosters Community</h3>
-                    <p class="mt-2 text-gray-600">Connect with fellow creators, share insights, and grow together through ongoing engagement and events.</p>
-                </div>
-                <!-- Card 6 -->
-                 <div class="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center justify-center h-12 w-12 rounded-full bg-artisan-light">
-                         <svg class="h-6 w-6 text-artisan-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mt-5">Saves You Time</h3>
-                    <p class="mt-2 text-gray-600">We've distilled years of experience into a structured curriculum, helping you avoid costly mistakes and trial-and-error.</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- NEW: Meet Your Instructors Section -->
-        <section class="py-16 sm:py-24 bg-artisan-light rounded-2xl reveal">
-            <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Meet Your Instructors</h2>
-                <p class="mt-4 text-lg text-gray-600">Learn from seasoned experts who have turned their own craft into successful businesses and helped countless others do the same.</p>
-            </div>
-            <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
-                <!-- Instructor 1 -->
-                <div class="text-center">
-                    <img class="w-40 h-40 rounded-full mx-auto shadow-lg" src="https://placehold.co/400x400/D97706/FFFFFF?text=Priya" alt="Instructor Priya Sharma" onerror="this.onerror=null;this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Priya';">
-                    <h3 class="mt-6 text-2xl font-bold text-gray-800">Priya Sharma</h3>
-                    <p class="text-artisan-accent font-semibold">Lead Instructor & Brand Strategist</p>
-                    <p class="mt-2 text-gray-600">With over 15 years in brand development for lifestyle products, Priya specializes in helping artisans create compelling brand stories that captivate a global audience. Her work has been featured in several international design magazines.</p>
-                </div>
-                <!-- Instructor 2 -->
-                <div class="text-center">
-                    <img class="w-40 h-40 rounded-full mx-auto shadow-lg" src="https://placehold.co/400x400/57534E/FFFFFF?text=Rohan" alt="Instructor Rohan Das" onerror="this.onerror=null;this.src='https://placehold.co/400x400/e2e8f0/64748b?text=Rohan';">
-                    <h3 class="mt-6 text-2xl font-bold text-gray-800">Rohan Das</h3>
-                    <p class="text-artisan-accent font-semibold">E-commerce & Logistics Expert</p>
-                    <p class="mt-2 text-gray-600">Rohan is a serial entrepreneur who built a seven-figure e-commerce business shipping Indian handicrafts to over 50 countries. He demystifies the complexities of online platforms, payments, and international logistics.</p>
-                </div>
-            </div>
-        </section>
-        
-        <!-- NEW: FAQ Section -->
-        <section class="py-16 sm:py-24 reveal">
-            <div class="text-center max-w-3xl mx-auto">
-                <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Frequently Asked Questions</h2>
-                <p class="mt-4 text-lg text-gray-600">Have questions? We have answers. Here are some of the most common queries from aspiring craftpreneurs.</p>
-            </div>
-            <div class="mt-12 max-w-3xl mx-auto space-y-4">
-                <!-- FAQ Item 1 -->
-                <div class="bg-white rounded-lg shadow-sm">
-                    <button class="accordion-toggle flex justify-between items-center w-full p-5 text-left font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset ring-artisan-accent">
-                        <span>Is this course for beginners?</span>
-                        <svg class="accordion-icon w-5 h-5 text-gray-500 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <div class="accordion-content">
-                        <p class="p-5 pt-0 text-gray-600">Absolutely! This course is designed for anyone with a craft or a passion for handicrafts, regardless of their business experience. We start with the absolute basics and build up from there.</p>
-                    </div>
-                </div>
-                 <!-- FAQ Item 2 -->
-                <div class="bg-white rounded-lg shadow-sm">
-                    <button class="accordion-toggle flex justify-between items-center w-full p-5 text-left font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset ring-artisan-accent">
-                        <span>What if I don't have a registered business yet?</span>
-                         <svg class="accordion-icon w-5 h-5 text-gray-500 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <div class="accordion-content">
-                        <p class="p-5 pt-0 text-gray-600">That's exactly why we created Module 1! We will walk you through the entire process of how to register your business, get a GST number, and handle all the necessary paperwork step-by-step.</p>
-                    </div>
-                </div>
-                 <!-- FAQ Item 3 -->
-                <div class="bg-white rounded-lg shadow-sm">
-                    <button class="accordion-toggle flex justify-between items-center w-full p-5 text-left font-semibold text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset ring-artisan-accent">
-                        <span>Do I need expensive camera equipment?</span>
-                         <svg class="accordion-icon w-5 h-5 text-gray-500 transform transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    <div class="accordion-content">
-                        <p class="p-5 pt-0 text-gray-600">Not at all. In our Digital Showcase module, we teach you techniques to take professional-looking product photos using just your smartphone and simple, affordable lighting setups.</p>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <!-- Planet buttons -->
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="sun">☀️ Sun</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="moon">🌙 Moon</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="mars">♂️ Mars</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="mercury">☿️ Mercury</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="jupiter">♃ Jupiter</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="venus">♀️ Venus</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="saturn">♄ Saturn</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="rahu">☊ Rahu</button>
+                        <button class="planet-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all" data-planet="ketu">☋ Ketu</button>
                     </div>
                 </div>
             </div>
-        </section>
 
-    </main>
-    
-    <!-- Footer / CTA -->
-    <footer class="bg-gray-800 text-white mt-16 reveal">
-        <div class="max-w-4xl mx-auto py-16 px-4 text-center">
-             <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Ready to Build Your Craft Empire?</h2>
-             <p class="mt-4 text-lg text-gray-300">Join a community of passionate creators and turn your artisan skills into a global brand. Your journey starts now.</p>
-             <a href="#enroll" class="mt-8 inline-block bg-artisan-accent text-white font-bold py-4 px-10 rounded-lg text-xl hover:bg-amber-700 transition duration-300 shadow-lg">Enroll in Bharat Craftpreneur Today</a>
-        </div>
-        <div class="bg-gray-900 py-4 px-4 text-center text-sm text-gray-400">
-            <p>&copy; 2024 Bharat Craftpreneur. All Rights Reserved.</p>
-        </div>
-    </footer>
+            <!-- Life Areas Section -->
+            <div id="life-areas-content" class="tab-content hidden-content">
+                <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">Explore the 12 houses (Bhavas) of the horoscope, each representing a distinct area of life. Click on any card—from 'Self & Personality' to 'Profession'—to reveal a detailed analysis based on the planetary influences affecting that domain. This allows for a structured exploration of specific life themes.</p>
+                <div id="house-details-display" class="bg-white p-6 rounded-xl shadow-lg mb-8 min-h-[150px]">
+                     <h3 id="house-detail-title" class="font-bold text-xl text-indigo-900 mb-2">Select a Life Area</h3>
+                     <p id="house-detail-text" class="text-slate-700">Click a card below to read the detailed interpretation for that area of life.</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- House buttons -->
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="1"><strong>1st House</strong><br>Self & Personality</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="2"><strong>2nd House</strong><br>Wealth & Family</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="3"><strong>3rd House</strong><br>Siblings & Courage</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="4"><strong>4th House</strong><br>Mother & Home</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="5"><strong>5th House</strong><br>Children & Intellect</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="6"><strong>6th House</strong><br>Health & Enemies</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="7"><strong>7th House</strong><br>Marriage & Partner</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="8"><strong>8th House</strong><br>Longevity & In-laws</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="9"><strong>9th House</strong><br>Fortune & Spirituality</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="10"><strong>10th House</strong><br>Career & Fame</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="11"><strong>11th House</strong><br>Gains & Friends</button>
+                    <button class="house-btn bg-white p-4 rounded-lg shadow-md hover:shadow-xl hover:bg-amber-100 transition-all text-center" data-house="12"><strong>12th House</strong><br>Expenses & Foreign</button>
+                </div>
+            </div>
+
+            <!-- Timeline Section -->
+            <div id="timeline-content" class="tab-content hidden-content">
+                 <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">This section visualizes the major planetary periods (Dashas) influencing Mihir's life. The Vimshottari Dasha shows the long-term themes, dominated by Saturn's extensive Mahadasha. The sub-periods provide a more granular look at the shifting influences over time, helping to understand the rhythm and flow of life events.</p>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="font-bold text-xl text-indigo-900 mb-6 text-center">Vimshottari Dasha (Major Life Cycles)</h3>
+                    <div class="relative">
+                        <!-- Main Dasha Line -->
+                        <div class="border-l-4 border-indigo-300 absolute h-full top-0 left-4"></div>
+                        
+                        <!-- Saturn Mahadasha -->
+                        <div class="mb-8 pl-12 relative">
+                            <div class="absolute w-8 h-8 bg-indigo-900 rounded-full -left-4 border-4 border-white"></div>
+                            <h4 class="font-bold text-lg text-indigo-800">Saturn Mahadasha</h4>
+                            <p class="text-sm text-slate-500">Dec 2005 - Oct 2124</p>
+                            <p class="mt-1 text-slate-700">The predominant life force. A period defined by discipline, hard work, overcoming challenges, and laying strong foundations for long-term success.</p>
+
+                            <!-- Antardasha -->
+                            <div class="mt-4 pl-6 border-l-2 border-amber-400">
+                               <div class="relative">
+                                  <div class="absolute w-4 h-4 bg-amber-500 rounded-full -left-[34px] top-1 border-2 border-white"></div>
+                                  <h5 class="font-semibold text-indigo-700">Current Sub-period: Saturn Antardasha</h5>
+                                  <p class="text-sm text-slate-500">Oct 2023 - Oct 2040</p>
+                                  <p class="mt-1 text-sm text-slate-600">An intensified Saturnine influence. Critical for foundational work, demanding a highly structured and patient approach.</p>
+                               </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                 <div class="bg-white p-6 rounded-xl shadow-lg mt-8">
+                    <h3 class="font-bold text-xl text-indigo-900 mb-4 text-center">Current Yogini Dasha</h3>
+                    <p class="text-center text-slate-700">Currently in the Dasha of <strong class="text-indigo-800">Bhadrika (Saturn)</strong>, which runs from Aug 2023 to Aug 2031, reinforcing the themes of discipline and karmic lessons.</p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div id="charts-content" class="tab-content hidden-content">
+                <p class="text-center max-w-3xl mx-auto mb-10 text-slate-600">This section houses a collection of essential astrological diagrams for detailed analysis. It includes the Rasi (Lagna) chart, which shows planetary positions at birth, and the Navamsa (D9) chart, which offers deeper insights into marriage, skills, and the soul's path. Both South and North Indian styles are provided for comprehensive study.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Rasi Charts -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Lagna/Rasi Chart (South)</h3>
+                        <table class="south-indian-chart">
+                             <tr>
+                                <td class="asc-cell">Aq <span class="planet-abbr">Asc</span></td>
+                                <td class="planet-cell">Pi <span class="planet-abbr">Mon, Rah</span></td>
+                                <td class="planet-cell">Ar <span class="planet-abbr">Mar(R)</span></td>
+                                <td class="planet-cell">Ta</td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Cp <span class="planet-abbr">Ven</span></td>
+                                <td colspan="2" rowspan="2" class="font-bold text-indigo-800">Rasi</td>
+                                <td class="planet-cell">Ge</td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Sg <span class="planet-abbr">Plu</span></td>
+                                <td class="planet-cell">Cn <span class="planet-abbr">Sat(R)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Sc <span class="planet-abbr">Sun, Mer</span></td>
+                                <td class="planet-cell">Li <span class="planet-abbr">Jup</span></td>
+                                <td class="planet-cell">Vi <span class="planet-abbr">Ket</span></td>
+                                <td class="planet-cell">Le</td>
+                            </tr>
+                        </table>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Lagna/Rasi Chart (North)</h3>
+                        <div class="north-indian-chart-container">
+                             <table class="north-indian-chart">
+                                <tr>
+                                    <td class="planet-cell"><div>Pi<br><span class="planet-abbr">Mon, Rah</span></div></td>
+                                    <td class="planet-cell"><div>Ar<br><span class="planet-abbr">Mar(R)</span></div></td>
+                                    <td class="planet-cell"><div>Ta</div></td>
+                                    <td class="planet-cell"><div>Ge</div></td>
+                                </tr>
+                                <tr>
+                                    <td class="asc-cell"><div>Aq<br><span class="planet-abbr">Asc</span></div></td>
+                                    <td colspan="2" rowspan="2"></td>
+                                    <td class="planet-cell"><div>Cn<br><span class="planet-abbr">Sat(R)</span></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Cp<br><span class="planet-abbr">Ven</span></div></td>
+                                    <td class="planet-cell"><div>Le</div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Sg<br><span class="planet-abbr">Plu</span></div></td>
+                                    <td class="planet-cell"><div>Sc<br><span class="planet-abbr">Sun, Mer</span></div></td>
+                                    <td class="planet-cell"><div>Li<br><span class="planet-abbr">Jup</span></div></td>
+                                    <td class="planet-cell"><div>Vi<br><span class="planet-abbr">Ket</span></div></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Navamsa D9 Charts -->
+                     <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Navamsa D9 Chart (South)</h3>
+                        <table class="south-indian-chart">
+                           <tr>
+                                <td class="planet-cell">Le <span class="planet-abbr">Jup</span></td>
+                                <td class="planet-cell">Vi</td>
+                                <td class="planet-cell">Li <span class="planet-abbr">Sat(R)</span></td>
+                                <td class="planet-cell">Sc</td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Cn <span class="planet-abbr">Sun</span></td>
+                                <td colspan="2" rowspan="2" class="font-bold text-indigo-800">Navamsa</td>
+                                <td class="asc-cell">Sg <span class="planet-abbr">Asc</span></td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Ge <span class="planet-abbr">Ven, Rah</span></td>
+                                <td class="planet-cell">Cp <span class="planet-abbr">Mar(R)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="planet-cell">Ta <span class="planet-abbr">Mon</span></td>
+                                <td class="planet-cell">Ar</td>
+                                <td class="planet-cell">Pi</td>
+                                <td class="planet-cell">Aq <span class="planet-abbr">Mer, Ket</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
+                        <h3 class="font-bold text-xl text-indigo-900 mb-4">Navamsa D9 Chart (North)</h3>
+                        <div class="north-indian-chart-container">
+                            <table class="north-indian-chart">
+                                <tr>
+                                    <td class="planet-cell"><div>Vi</div></td>
+                                    <td class="planet-cell"><div>Li<br><span class="planet-abbr">Sat(R)</span></div></td>
+                                    <td class="planet-cell"><div>Sc</div></td>
+                                    <td class="asc-cell"><div>Sg<br><span class="planet-abbr">Asc</span></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Le<br><span class="planet-abbr">Jup</span></div></td>
+                                    <td colspan="2" rowspan="2"></td>
+                                    <td class="planet-cell"><div>Cp<br><span class="planet-abbr">Mar(R)</span></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Cn<br><span class="planet-abbr">Sun</span></div></td>
+                                    <td class="planet-cell"><div>Aq<br><span class="planet-abbr">Mer, Ket</span></div></td>
+                                </tr>
+                                <tr>
+                                    <td class="planet-cell"><div>Ge<br><span class="planet-abbr">Ven, Rah</span></div></td>
+                                    <td class="planet-cell"><div>Ta<br><span class="planet-abbr">Mon</span></div></td>
+                                    <td class="planet-cell"><div>Ar</div></td>
+                                    <td class="planet-cell"><div>Pi</div></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            // --- Module Content Injection ---
-            const moduleContents = {
-                foundation: `
-                    <h3 class="text-2xl font-bold text-gray-800">Module 1: Crafting Your Business Foundation</h3>
-                    <p class="mt-2 text-gray-600">Demystifying the legal, administrative, and foundational aspects of establishing a legitimate craft business.</p>
-                    <ul class="mt-6 space-y-4">
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Actionable Steps:</strong> Learn step-by-step instructions on company registration (Proprietorship, LLP), obtaining GST registration, and understanding essential business licenses.</div></li>
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Build Credibility:</strong> Navigate the process for NSDC certifications to build trust and access government schemes.</div></li>
-                    </ul>`,
-                digital: `
-                    <h3 class="text-2xl font-bold text-gray-800">Module 2: Mastering the Art of Digital Showcase & Sales</h3>
-                    <p class="mt-2 text-gray-600">Equipping you with the essential digital skills to beautifully present and effectively sell your handcrafted products online.</p>
-                    <ul class="mt-6 space-y-4">
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Visual Storytelling:</strong> Master professional product photography (even with a smartphone) and craft compelling brand stories that sell.</div></li>
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">E-commerce Excellence:</strong> Set up and manage e-commerce platforms, develop effective social media strategies, and handle secure online payments.</div></li>
-                    </ul>`,
-                global: `
-                    <h3 class="text-2xl font-bold text-gray-800">Module 3: Global Reach - Logistics, Quality & Exports</h3>
-                    <p class="mt-2 text-gray-600">Navigating the critical challenges of packaging, shipping, quality assurance, and international trade to access global markets.</p>
-                    <ul class="mt-6 space-y-4">
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Secure Shipping:</strong> Learn best practices for packaging delicate crafts, and understand domestic and international shipping logistics.</div></li>
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Go International:</strong> Get guidance on obtaining the crucial Export-Import Code (IEC), adhering to international quality standards, and basic customs procedures.</div></li>
-                    </ul>`,
-                tools: `
-                    <h3 class="text-2xl font-bold text-gray-800">Module 4: Essential Tools & Tech Stack</h3>
-                    <p class="mt-2 text-gray-600">Get hands-on with the modern digital tools that power successful online businesses, no coding required.</p>
-                    <ul class="mt-6 space-y-4">
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Design & Branding:</strong> Learn to use Canva to create stunning social media posts, logos, and marketing materials.</div></li>
-                        <li class="flex items-start"><span class="text-artisan-accent font-bold text-xl mr-3 mt-1">✓</span><div><strong class="text-gray-700">Sales Platforms:</strong> Master setting up shops on Etsy, Shopify, and leveraging Instagram/Facebook Marketplace for direct sales.</div></li>
-                    </ul>`
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data
+            const planetData = {
+                sun: { title: '☀️ Sun in Scorpio (10th House)', text: 'Represents father, soul, and power. Its placement in the 10th house indicates a strong drive for career success, leadership, and public recognition. It suggests an intense, strategic, and transformative professional approach, with an ability to manage complex situations and bring hidden truths to light. This can lead to a powerful public image and fame.' },
+                moon: { title: '🌙 Moon in Pisces (2nd House)', text: 'Represents mother, mind, and emotions. In Pisces, it creates a deeply compassionate, intuitive, and sensitive nature. You absorb the emotions of others. This placement in the 2nd house links emotional well-being to financial security and family values. Speech is often soft and nurturing.' },
+                mars: { title: '♂️ Mars in Aries (3rd House, Retrograde)', text: 'Represents energy, courage, and siblings. In its own sign of Aries, it provides immense courage, determination, and a direct communication style. It fuels a love for short travels and learning new skills. The retrograde status suggests that this assertive energy may be internalized or expressed in unconventional ways, requiring conscious management to avoid conflict.' },
+                mercury: { title: '☿️ Mercury in Scorpio (10th House)', text: 'Represents intellect, communication, and skills. In Scorpio in the 10th house, it creates a deeply analytical, investigative, and strategic mind, perfect for research and fields like data science. It grants persistence in intellectual pursuits and an ability to uncover hidden information, driving career success.' },
+                jupiter: { title: '♃ Jupiter in Libra (9th House)', text: 'Represents wisdom, fortune, and higher learning. This is a very strong placement in the 9th house, indicating success in higher education, a strong moral compass, and a love for philosophy and long-distance travel. It bestows wisdom, righteousness, and suggests a fortunate and respectful relationship with a spouse.' },
+                venus: { title: '♀️ Venus in Capricorn (12th House)', text: 'Represents love, beauty, and luxury. In the 12th house, it can indicate a reserved or practical approach to expressing love, despite deep desires for commitment. It may lead to high, sometimes unrealistic, expectations in romance and a fascination with foreign lands or hidden pleasures. It favors prosperity through foreign connections.' },
+                saturn: { title: '♄ Saturn in Cancer (6th House, Retrograde)', text: 'Represents discipline, challenges, and karma. This is a defining placement. In the 6th house, it gives the discipline to overcome enemies and obstacles through hard work. However, in the enemy sign of Cancer and retrograde, it indicates that progress in life and career may be slow, marked by hurdles, emotional stress, and potential digestive issues. It is the great teacher of patience and perseverance.' },
+                rahu: { title: '☊ Rahu in Pisces (2nd House)', text: 'Represents ambition, foreign influences, and illusion. In the 2nd house, it can create an unconventional approach to earning wealth and a fluctuating financial status. It fuels a strong interest in spirituality, mysticism, and transcendental knowledge, but can also cause conflicts over income or family resources.' },
+                ketu: { title: '☋ Ketu in Virgo (8th House)', text: 'Represents spirituality, detachment, and past life influences. In the 8th house, it grants profound intuitive and analytical abilities, especially for research into occult or hidden subjects. It can indicate a spiritual nature but may also bring about sudden, unexpected events and persistent digestive issues. It suggests a karmic connection with in-laws.' },
             };
-            Object.keys(moduleContents).forEach(key => {
-                document.getElementById(key).innerHTML = moduleContents[key];
+
+            const houseData = {
+                 '1': { title: '1st House: Self & Personality', text: 'With Aquarius as the Ascendant, you are idealistic, a progressive thinker, and humanitarian. You value independence and freedom. Your personality is a blend of intellectual detachment and a deep-seated desire to reform and innovate for the collective good. Saturn\'s rule brings discipline and perseverance.' },
+                '2': { title: '2nd House: Wealth, Family & Speech', text: 'With Moon and Rahu in Pisces, your financial well-being is tied to your emotional state. There\'s potential for wealth but also fluctuations. Family values are important, and your speech is often gentle and compassionate. Rahu can bring unconventional income sources.' },
+                '3': { title: '3rd House: Siblings, Courage & Communication', text: 'Retrograde Mars in its own sign Aries makes you extremely courageous and determined. Communication is direct and bold, but can sometimes be blunt. This placement indicates a dynamic but potentially competitive relationship with siblings and a love for short travels.' },
+                '4': { title: '4th House: Mother, Home & Property', text: 'Taurus in the 4th house shows a deep desire for a beautiful, stable, and luxurious home environment. It suggests a strong bond with the mother, but Saturn\'s aspect can indicate challenges or emotional distance in that relationship. Good potential for real estate gains, though possibly with delays.' },
+                '5': { title: '5th House: Children, Intellect & Creativity', text: 'Gemini here points to a sharp, curious, and adaptable intellect. You are fulfilled through creative and academic pursuits. This is a strong placement for education and suggests you will have intelligent children, with a parenting style that emphasizes intellectual development.' },
+                '6': { title: '6th House: Health, Enemies & Daily Routine', text: 'Retrograde Saturn in Cancer here is a crucial placement. It gives the grit to overcome enemies through hard work but also points to potential chronic health issues, especially digestive problems and stress-related ailments. It indicates a life path where discipline and service are key to overcoming obstacles.' },
+                '7': { title: '7th House: Marriage & Business Partner', text: 'Leo here suggests an attraction to confident, high-status, or glamorous partners. There\'s a desire for the partnership to "shine" publicly. While romantic, it can lead to ego clashes, requiring a balance of admiration and equality. Strong potential for successful business partnerships.' },
+                '8': { title: '8th House: Longevity, In-laws & Hidden Matters', text: 'Ketu in Virgo gives a powerful, analytical mind for research and uncovering secrets. It indicates a spiritual nature and intuition. The relationship with in-laws may be complex and detached. This house also points to sudden transformations and persistent, minor health issues.' },
+                '9': { title: '9th House: Fortune, Spirituality & Long Travels', text: 'Jupiter in Libra is a highly auspicious placement, indicating good fortune, success in higher learning, and a strong spiritual or philosophical inclination. You are open-minded and likely to undertake long-distance travel for education or spiritual growth. It promises a righteous and caring spouse.' },
+                '10': { title: '10th House: Career, Fame & Status', text: 'With Sun and Mercury in Scorpio, your career is your powerhouse. This indicates immense drive, ambition, and a path towards leadership and public recognition. You are suited for strategic, analytical, and investigative professions like Data Science/AI. Strong potential for fame, but also a risk of workaholism.' },
+                '11': { title: '11th House: Gains, Friends & Society', text: 'Sagittarius here suggests a broad social circle with supportive friends. Financial gains are indicated through your professional network. Your humanitarian ideals will draw you to community groups, though you may struggle to express affection openly in friendships.' },
+                '12': { title: '12th House: Expenses, Foreign Lands & Liberation', text: 'Venus in Capricorn points to an interest in foreign travel and potential for earning wealth abroad. However, it can also lead to high expenses. It represents a more private or restrained expression of love and a need to manage unrealistic expectations in relationships to find true fulfillment.' },
+            };
+
+            // Tab navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tab = link.getAttribute('data-tab');
+
+                    navLinks.forEach(item => item.classList.remove('active'));
+                    link.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden-content');
+                        content.classList.remove('fade-in');
+                    });
+                    
+                    const activeContent = document.getElementById(tab + '-content');
+                    activeContent.classList.remove('hidden-content');
+                    activeContent.classList.add('fade-in');
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
             });
 
-            // --- Tab Functionality ---
-            window.openTab = function(tabName) {
-                document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
-                document.querySelectorAll('.tab-button').forEach(button => {
-                    button.classList.remove('tab-active');
-                    button.classList.add('tab-inactive');
-                });
-                document.getElementById(tabName).style.display = 'block';
-                const activeButton = Array.from(document.querySelectorAll('.tab-button')).find(btn => btn.getAttribute('onclick').includes(tabName));
-                activeButton.classList.add('tab-active');
-                activeButton.classList.remove('tab-inactive');
-            }
+            // Planet details interaction
+            const planetBtns = document.querySelectorAll('.planet-btn');
+            const planetDetailTitle = document.getElementById('planet-detail-title');
+            const planetDetailText = document.getElementById('planet-detail-text');
 
-            // --- Chart.js ---
-            const ctx = document.getElementById('marketGapChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
+            planetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const planet = btn.getAttribute('data-planet');
+                    const data = planetData[planet];
+                    planetDetailTitle.innerHTML = data.title;
+                    planetDetailText.textContent = data.text;
+                });
+            });
+
+            // House details interaction
+            const houseBtns = document.querySelectorAll('.house-btn');
+            const houseDetailTitle = document.getElementById('house-detail-title');
+            const houseDetailText = document.getElementById('house-detail-text');
+            
+            houseBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const house = btn.getAttribute('data-house');
+                    const data = houseData[house];
+                    houseDetailTitle.textContent = data.title;
+                    houseDetailText.textContent = data.text;
+                    document.getElementById('house-details-display').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+
+
+            // Chart.js Radar Chart
+            const ctx = document.getElementById('planetaryStrengthChart').getContext('2d');
+            const planetaryStrengthChart = new Chart(ctx, {
+                type: 'radar',
                 data: {
-                    labels: ['Software & Generic Courses', 'Practical Craft Business Courses'],
+                    labels: ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'],
                     datasets: [{
-                        label: 'Availability in Skilling Market',
-                        data: [95, 5],
-                        backgroundColor: ['#D1D5DB', '#F59E0B'],
-                        borderColor: ['#9CA3AF', '#D97706'],
-                        borderWidth: 1
+                        label: 'Planetary Strength',
+                        data: [7, 6, 9, 7, 8, 6, 5], // OwnSign=9, FrSign=7, NuSign=6, EnSign=5, R=deduct 1.
+                        backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                        borderColor: 'rgba(30, 58, 138, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(30, 58, 138, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(30, 58, 138, 1)'
                     }]
                 },
                 options: {
-                    responsive: true,
                     maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: { x: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%' } } },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 14 }, color: '#1e293b' },
+                            ticks: {
+                                backdropColor: 'rgba(253, 246, 227, 0.75)',
+                                color: '#475569',
+                                stepSize: 2,
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
                     plugins: {
-                        legend: { display: false },
-                        title: { display: true, text: 'Estimated Market Share of Online Courses', font: { size: 16 }, padding: { top: 10, bottom: 20 } }
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    let strength;
+                                    const val = context.raw;
+                                    if (val >= 9) strength = "Very Strong (Own Sign)";
+                                    else if (val >= 8) strength = "Strong (Exalted/Benefic)";
+                                    else if (val >= 7) strength = "Good (Friendly Sign)";
+                                    else if (val >= 6) strength = "Neutral";
+                                    else strength = "Challenging (Enemy Sign)";
+
+                                    return `${context.label}: ${strength}`;
+                                }
+                            }
+                        }
                     }
                 }
             });
-            
-            // --- Accordion Functionality ---
-            document.querySelectorAll('.accordion-toggle').forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    const icon = button.querySelector('.accordion-icon');
-                    
-                    if (content.style.maxHeight) {
-                        content.style.maxHeight = null;
-                        icon.style.transform = 'rotate(0deg)';
-                    } else {
-                        // Close other accordions
-                        document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
-                        document.querySelectorAll('.accordion-icon').forEach(i => i.style.transform = 'rotate(0deg)');
-                        
-                        content.style.maxHeight = content.scrollHeight + "px";
-                        icon.style.transform = 'rotate(180deg)';
-                    } 
-                });
-            });
-
-            // --- Intersection Observer for Animations ---
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            document.querySelectorAll('.reveal').forEach(el => {
-                observer.observe(el);
-            });
-            // Immediately reveal the first element (header)
-            document.querySelector('.reveal')?.classList.add('visible');
         });
     </script>
 </body>
